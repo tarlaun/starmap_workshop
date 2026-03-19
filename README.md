@@ -18,18 +18,3 @@ The **StarMap Workshop (UC Riverside)** introduces participants to:
 This repository is designed to be **practical and beginner-friendly**, with minimal setup and clear examples.
 
 ---
-
-## 📂 Repository Structure
-
-```text
-starmap-workshop/
-│
-├── datasets/              # Sample datasets (or download instructions)
-├── examples/              # Minimal working scripts
-│   ├── starlet_server/    # Simple tile server examples
-│   ├── map_viewer/        # HTML/JS visualization examples
-│   └── preprocessing/     # Data preparation scripts
-│
-├── notebooks/             # Optional exploratory notebooks
-├── assets/                # Images, styles, and static files
-└── README.md
