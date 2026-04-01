@@ -11,7 +11,7 @@ import starlet
 from flask import Flask, Response, abort, send_file
 
 warnings.filterwarnings("ignore", category=FutureWarning)
-
+# INPUT_DATA = "TIGER2018_COUNTY.geojson"
 INPUT_DATA = "/Users/tarlan/Downloads/TIGER2018_COUNTY.geojson"
 DATASET_ROOT = Path("./datasets")
 DATASET_NAME = "TIGER2018_COUNTY"
