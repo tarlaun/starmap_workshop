@@ -4,24 +4,29 @@
   <meta charset="utf-8" />
   <title>Starlet Workshop Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Starlet map example</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v9.2.4/ol.css" />
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@9.2.4/ol.css" />
   <style>
     html, body {
       margin: 0;
-      padding: 0;
       width: 100%;
       height: 100%;
-      font-family: Arial, sans-serif;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7fb;
     }
 
     #map {
+      position: fixed;
+      inset: 0;
       width: 100%;
       height: 100%;
     }
 
     #panel {
+    .info-panel {
       position: absolute;
       top: 12px;
       left: 12px;
@@ -39,12 +44,56 @@
       margin: 0 0 4px;
       font-size: 14px;
       color: #1a4a7a;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+      width: min(420px, calc(100vw - 32px));
+      padding: 14px 16px 12px;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+      color: #1f2a37;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+
+    .info-panel h1 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .info-row {
+      margin: 6px 0;
+      font-size: 13px;
+      line-height: 1.4;
+      word-break: break-word;
     }
 
     #panel p {
       margin: 0 0 8px;
       color: #555;
       font-size: 12px;
+    .label {
+      display: inline-block;
+      min-width: 92px;
+      font-weight: 700;
+      color: #334155;
+      vertical-align: top;
+    }
+
+    code {
+      display: block;
+      margin-top: 4px;
+      padding: 8px 10px;
+      background: #f1f5f9;
+      border: 1px solid #dbe4ee;
+      border-radius: 10px;
+      color: #0f172a;
+      white-space: pre-wrap;
+      word-break: break-all;
+      user-select: text;
     }
 
     #status {
@@ -72,6 +121,9 @@
       margin-bottom: 4px;
       font-size: 11px;
       color: #444;
+    #status {
+      font-weight: 600;
+      color: #0f172a;
     }
 
     .legend-swatch {
@@ -110,12 +162,23 @@
       <h4>Legend</h4>
       <div style="font-size:11px;color:#666;">Waiting for features…</div>
     </div>
+  <div id="map"></div>
+
+  <div class="info-panel">
+    <h1>Starlet map example</h1>
+    <div class="info-row"><span class="label">Dataset:</span> <span id="dataset-name"></span></div>
+    <div class="info-row">
+      <span class="label">Tile URL:</span>
+      <code id="tile-url"></code>
+    </div>
+    <div class="info-row"><span class="label">Status:</span> <span id="status">Ready.</span></div>
   </div>
 
   <div id="map"></div>
   <div id="tooltip"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/ol@v9.2.4/dist/ol.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ol@9.2.4/dist/ol.js"></script>
   <script>
     const PALETTE = [
       "#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
@@ -230,6 +293,124 @@
         style: featureStyle,
         renderMode: "vector"
       });
+    (function () {
+      const defaultDataset = 'TIGER2018_COUNTY';
+      const params = new URLSearchParams(window.location.search);
+      const dataset = params.get('dataset') || defaultDataset;
+
+      const templateUrl = `${window.location.origin}/tiles/${dataset}/mvt/{z}/{x}/{y}.mvt`;
+
+      const datasetNameEl = document.getElementById('dataset-name');
+      const tileUrlEl = document.getElementById('tile-url');
+      const statusEl = document.getElementById('status');
+
+      datasetNameEl.textContent = dataset;
+      tileUrlEl.textContent = templateUrl;
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+      }
+
+      function hashString(value) {
+        let hash = 0;
+        const text = String(value || '');
+        for (let i = 0; i < text.length; i++) {
+          hash = ((hash << 5) - hash) + text.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash);
+      }
+
+      function regionFillColor(key) {
+        const hash = hashString(key);
+        const r = 35 + (hash % 120);
+        const g = 70 + (Math.floor(hash / 120) % 120);
+        const b = 120 + (Math.floor(hash / 240) % 110);
+        return `rgba(${r}, ${g}, ${b}, 0.42)`;
+      }
+
+      const styleCache = new Map();
+
+      function featureStyle(feature) {
+        const geom = feature.getGeometry();
+        const geomType = geom ? geom.getType() : 'Unknown';
+        const key = feature.get('GEOID') || feature.get('NAME') || feature.getId() || 'default';
+        const cacheKey = `${geomType}|${key}`;
+
+        if (styleCache.has(cacheKey)) {
+          return styleCache.get(cacheKey);
+        }
+
+        let style;
+
+        if (geomType === 'Point' || geomType === 'MultiPoint') {
+          style = new ol.style.Style({
+            image: new ol.style.Circle({
+              radius: 6,
+              fill: new ol.style.Fill({
+                color: 'rgba(217, 95, 14, 0.9)'
+              }),
+              stroke: new ol.style.Stroke({
+                color: 'rgba(255, 255, 255, 1)',
+                width: 1
+              })
+            })
+          });
+        } else if (
+          geomType === 'Polygon' ||
+          geomType === 'MultiPolygon' ||
+          geomType === 'GeometryCollection'
+        ) {
+          style = new ol.style.Style({
+            fill: new ol.style.Fill({
+              color: regionFillColor(key)
+            }),
+            stroke: new ol.style.Stroke({
+              color: 'rgba(8, 48, 107, 0.95)',
+              width: 1.2
+            })
+          });
+        } else {
+          style = new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: 'rgba(8, 48, 107, 0.95)',
+              width: 1.2
+            }),
+            fill: new ol.style.Fill({
+              color: regionFillColor(key)
+            })
+          });
+        }
+
+        styleCache.set(cacheKey, style);
+        return style;
+      }
+
+      const base = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+
+      const vectorSource = new ol.source.VectorTile({
+        format: new ol.format.MVT(),
+        url: templateUrl
+      });
+
+      vectorSource.on('tileloadstart', function () {
+        setStatus('Loading vector tiles…');
+      });
+
+      vectorSource.on('tileloadend', function () {
+        setStatus('Vector tiles loaded.');
+      });
+
+      vectorSource.on('tileloaderror', function () {
+        setStatus('Vector tile load error. Check the Flask console.');
+      });
+
+      const vectorLayer = new ol.layer.VectorTile({
+        source: vectorSource,
+        style: featureStyle
+      });
 
       const map = new ol.Map({
         target: "map",
@@ -257,6 +438,14 @@
 
       let successCount = 0;
       let errorCount = 0;
+      const map = new ol.Map({
+        target: 'map',
+        layers: [base, vectorLayer],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([-98.5, 39.5]),
+          zoom: 3
+        })
+      });
 
       mvtSource.on("tileloadstart", () => {
         statusEl.textContent = "Loading tiles…";
@@ -309,6 +498,8 @@
       console.error(err);
       document.getElementById("status").textContent = "Failed to initialize map.";
     });
+      setStatus('Ready to load vector tiles.');
+    })();
   </script>
 </body>
 </html>
