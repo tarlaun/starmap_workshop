@@ -15,20 +15,21 @@ Everything runs using **just Python scripts** — no Jupyter notebook required.
 - Python 3.10+
 - Install dependencies:
 
+```bash
 pip install geopandas flask starlet datasketch mapbox-vector-tile pyproj flask-cors
-
+```
 ---
 
 
 ## Step 1 — (Optional) Prepare Data
 
 If starting from raw datasets (e.g., parks + vegetation types), run:
-
+```bash
 python3 data_comp.py \
   Riverside_Parks.geojson \
   Riverside_VegetationTypes.geojson \
   Riverside_Parks_DominantVegetation.geojson
-
+```
 This will:
 - Compute dominant vegetation per park
 - Output a clean GeoJSON
@@ -39,9 +40,9 @@ This will:
 ## Step 2 — Build Tiles + Serve Map
 
 Run:
-
+```bash
 python3 serve_map.py Riverside_Parks_DominantVegetation.geojson Parks_DominantVeg
-
+```
 This script will:
 1. Build a vector tile pyramid using Starlet  
 2. Start a local Flask server  
