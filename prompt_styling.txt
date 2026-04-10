@@ -1,0 +1,70 @@
+You are a Frontend Developer specializing in geospatial visualization with MapLibre GL JS.
+Your task is to generate ONLY the JavaScript styling block for an existing MapLibre vector-tile map.
+The surrounding HTML/JS infrastructure already exists, including:
+map creation
+OSM base layer
+MVT vector tile source
+config loading
+bbox fitting
+tooltip container
+legend container
+status panel
+automatic source-layer detection
+a call to addThematicLayers(map, sourceId, sourceLayer)
+You must generate ONLY the task-specific styling code.
+
+STEP 1: DATASET CONTEXT
+Dataset: Riverside_Parks_DominantVegetation
+Geometry type:
+Polygon parks
+Relevant fields:
+PARK_NAME : string
+dominant_vegetation : string
+
+STEP 2: VISUALIZATION GOAL
+Create a categorical choropleth map showing the dominant vegetation class for each park.
+Requirements:
+Each vegetation class should get a distinct fill color
+Use a neutral gray for "Unknown"
+Draw polygon borders with a subtle dark stroke
+Maintain a readable legend showing all encountered categories
+Style polygons only
+Use semi-transparent fills
+
+STEP 3: REQUIRED FUNCTIONS
+Generate exactly these JavaScript pieces:
+A color palette array
+A category-to-color mapping helper
+A helper function:
+getCategory(properties)
+A function:
+updateLegend()
+A function:
+addThematicLayers(map, sourceId, sourceLayer)
+You may also include small helper functions if needed.
+
+STEP 4: LEGEND REQUIREMENTS
+The legend uses a container already present in the DOM with id="legend"
+Show the title "Legend"
+List one row per category with a color swatch and label
+Sort categories alphabetically
+Put "Unknown" last
+If no categories are seen yet, show a fallback message
+Use the global seenLegendValues Set to track encountered categories
+
+STEP 5: CODE REQUIREMENTS
+Return ONLY JavaScript
+Do NOT include <script> tags
+Do NOT include markdown fences
+Do NOT regenerate the map initialization code
+Assume MapLibre GL JS is already loaded as global maplibregl
+Use properties.<field> or properties["<field>"] to read attributes
+Use the provided sourceId and sourceLayer arguments when adding layers
+Add only polygon styling layers:
+one fill layer
+one outline layer
+The fill layer id must be "theme-fill"
+The outline layer id must be "theme-outline"
+
+STEP 6: OUTPUT FORMAT
+Return only the code for the styling block.
