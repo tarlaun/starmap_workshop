@@ -26,11 +26,6 @@ Relevant fields:
 - PARK_NAME : string
 - dominant_vegetation : string
 
-The vector tiles may sometimes expose field names in different cases, so your code should tolerate:
-- dominant_vegetation
-- DOMINANT_VEGETATION
-- vegetation
-- VEGETATION
 
 ------------------------------------------------------------
 STEP 2: VISUALIZATION GOAL
