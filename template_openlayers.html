@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Starlet Workshop Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- OpenLayers CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v9.2.4/ol.css" />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    #panel {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 1000;
+      background: rgba(255,255,255,0.96);
+      padding: 12px 14px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      max-width: 340px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    #panel h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      color: #1a4a7a;
+    }
+
+    #panel p {
+      margin: 0 0 8px;
+      color: #555;
+      font-size: 12px;
+    }
+
+    #status {
+      font-size: 11px;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    #legend {
+      margin-top: 10px;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+
+    #legend h4 {
+      margin: 0 0 6px;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      color: #444;
+    }
+
+    .legend-swatch {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid rgba(0,0,0,0.2);
+      background: #000;
+    }
+
+    #tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      display: none;
+      max-width: 260px;
+      line-height: 1.5;
+    }
+
+    #tooltip strong {
+      color: #1a4a7a;
+    }
+
+    .code-note {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 11px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div id="panel">
+    <h3 id="title">Dataset</h3>
+    <p id="subtitle">Vector tiles served by Starlet</p>
+    <div id="status">Loading configuration…</div>
+
+    <div id="legend">
+      <h4>Legend</h4>
+      <div class="legend-row">
+        <span class="legend-swatch"></span>
+        <span>Default geometry style</span>
+      </div>
+    </div>
+
+    <div class="code-note">
+      This template starts with a simple black style so the map always loads first.
+      Students can replace the styling block below with their own map design.
+    </div>
+  </div>
+
+  <div id="map"></div>
+  <div id="tooltip"></div>
+
+  <!-- OpenLayers JS -->
+  <script src="https://cdn.jsdelivr.net/npm/ol@v9.2.4/dist/ol.js"></script>
+
+  <script>
+    // ================================================================
+    // SHARED STATE
+    // These are available to the styling block below.
+    // Students usually do not need to change these for simple styling.
+    // ================================================================
+    const seenLegendValues = new Set();
+    const styleCache = new Map();
+
+    // ================================================================
+    // STYLING BLOCK
+    // ----------------------------------------------------------------
+    // This section is the main area students should edit.
+    //
+    // Right now it uses a simple default style:
+    //   - black polygon outlines
+    //   - faint black fill
+    //   - one simple legend entry
+    //
+    // To customize the map, students can change:
+    //   - getCategory(feature)
+    //   - updateLegend()
+    //   - featureStyle(feature)
+    //
+    // Important:
+    //   featureStyle(feature) MUST always exist, otherwise the layer
+    //   will fail to render.
+    // ================================================================
+
+    function getCategory(feature) {
+      // Default category for the starter template.
+      // Students can later change this to read an attribute, for example:
+      // return feature.get("dominant_vegetation") || "Unknown";
+      return "Default geometry style";
+    }
+
+    function updateLegend() {
+      const legendEl = document.getElementById("legend");
+      if (!legendEl) return;
+
+      legendEl.innerHTML = `
+        <h4>Legend</h4>
+        <div class="legend-row">
+          <span class="legend-swatch" style="background:#000;"></span>
+          <span>Default geometry style</span>
+        </div>
+      `;
+    }
+
+    function featureStyle(feature) {
+      const category = getCategory(feature);
+      seenLegendValues.add(category);
+
+      if (!styleCache.has(category)) {
+        styleCache.set(category, new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: "rgba(0, 0, 0, 0.12)"
+          }),
+          stroke: new ol.style.Stroke({
+            color: "rgba(0, 0, 0, 0.95)",
+            width: 1.2
+          })
+        }));
+      }
+
+      return styleCache.get(category);
+    }
+
+    // ================================================================
+    // MAP APPLICATION LOGIC
+    // Students usually do not need to edit this part.
+    // This handles:
+    //   - loading config.json
+    //   - loading the OSM base layer
+    //   - loading vector tiles
+    //   - fitting the map to bbox
+    //   - tooltip behavior
+    // ================================================================
+
+    async function main() {
+      const statusEl = document.getElementById("status");
+      const titleEl = document.getElementById("title");
+      const tooltipEl = document.getElementById("tooltip");
+
+      // --------------------------------------------------------------
+      // Load configuration
+      // Expected fields in config.json:
+      //   {
+      //     "dataset": "DatasetName",
+      //     "bbox": [minx, miny, maxx, maxy],
+      //     "max_zoom": 10
+      //   }
+      // --------------------------------------------------------------
+      const response = await fetch("./config.json");
+      if (!response.ok) {
+        throw new Error(`Could not load config.json (${response.status})`);
+      }
+
+      const config = await response.json();
+
+      const dataset = config.dataset;
+      const bbox = config.bbox;
+      const maxZoom = config.max_zoom ?? 10;
+
+      if (!dataset) {
+        throw new Error("config.json is missing the 'dataset' field.");
+      }
+
+      titleEl.textContent = dataset;
+      statusEl.textContent = "Loading tiles…";
+
+      // --------------------------------------------------------------
+      // BASE LAYER
+      // This is the OpenStreetMap background.
+      // Students normally keep this as-is.
+      // --------------------------------------------------------------
+      const baseLayer = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+
+      // --------------------------------------------------------------
+      // VECTOR TILE SOURCE
+      // Adjust this URL pattern only if your server stores tiles
+      // using a different file naming scheme.
+      // --------------------------------------------------------------
+      const tileUrl = `${window.location.origin}/datasets/${dataset}/mvt/{z}/{x}/{y}.mvt`;
+
+      const mvtSource = new ol.source.VectorTile({
+        format: new ol.format.MVT(),
+        url: tileUrl,
+        maxZoom: maxZoom
+      });
+
+      // --------------------------------------------------------------
+      // DATA LAYER
+      // This uses featureStyle(feature), so that function must exist.
+      // --------------------------------------------------------------
+      const mvtLayer = new ol.layer.VectorTile({
+        source: mvtSource,
+        style: featureStyle,
+        renderMode: "vector"
+      });
+
+      // --------------------------------------------------------------
+      // CREATE MAP
+      // --------------------------------------------------------------
+      const map = new ol.Map({
+        target: "map",
+        layers: [
+          baseLayer,
+          mvtLayer
+        ],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([-117.37, 33.95]),
+          zoom: 10,
+          maxZoom: maxZoom
+        })
+      });
+
+      // --------------------------------------------------------------
+      // FIT TO DATASET BBOX IF AVAILABLE
+      // --------------------------------------------------------------
+      if (bbox && bbox.length === 4) {
+        const extent = ol.proj.transformExtent(bbox, "EPSG:4326", "EPSG:3857");
+        map.getView().fit(extent, {
+          padding: [40, 40, 40, 360],
+          maxZoom: maxZoom,
+          duration: 300
+        });
+      }
+
+      // --------------------------------------------------------------
+      // TILE LOADING STATUS
+      // --------------------------------------------------------------
+      let successCount = 0;
+      let errorCount = 0;
+
+      mvtSource.on("tileloadstart", () => {
+        statusEl.textContent = "Loading tiles…";
+      });
+
+      mvtSource.on("tileloadend", () => {
+        successCount++;
+        updateLegend();
+        statusEl.textContent = `Ready. Loaded ${successCount} tile(s).`;
+      });
+
+      mvtSource.on("tileloaderror", () => {
+        errorCount++;
+        if (successCount === 0) {
+          statusEl.textContent =
+            "Tile requests failed. Check config.json, tile URL pattern, or server paths.";
+        } else {
+          statusEl.textContent =
+            `Ready with partial coverage. Loaded ${successCount} tile(s), ${errorCount} miss(es).`;
+        }
+      });
+
+      // --------------------------------------------------------------
+      // SIMPLE TOOLTIP
+      // Students can later add more fields here.
+      // --------------------------------------------------------------
+      map.on("pointermove", evt => {
+        const feature = map.forEachFeatureAtPixel(
+          evt.pixel,
+          f => f,
+          { hitTolerance: 3 }
+        );
+
+        if (!feature) {
+          tooltipEl.style.display = "none";
+          map.getTargetElement().style.cursor = "";
+          return;
+        }
+
+        const name =
+          feature.get("PARK_NAME") ||
+          feature.get("park_name") ||
+          feature.get("NAME") ||
+          feature.get("name") ||
+          "Feature";
+
+        const category = getCategory(feature);
+
+        tooltipEl.innerHTML = `
+          <strong>${name}</strong><br>
+          Style: ${category}
+        `;
+
+        tooltipEl.style.display = "block";
+        tooltipEl.style.left = (evt.pixel[0] + 14) + "px";
+        tooltipEl.style.top = (evt.pixel[1] + 14) + "px";
+        map.getTargetElement().style.cursor = "pointer";
+      });
+    }
+
+    main().catch(err => {
+      console.error(err);
+      document.getElementById("status").textContent = "Failed to initialize map.";
+    });
+  </script>
+</body>
+</html>

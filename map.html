@@ -2,109 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Starlet Workshop Map</title>
+  <title>Starlet Workshop Map (MapLibre)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Starlet map example</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@9.2.4/ol.css" />
+  <link
+    href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+    rel="stylesheet"
+  />
+
   <style>
     html, body {
       margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
-      overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f4f7fb;
+      font-family: Arial, sans-serif;
     }
 
     #map {
-      position: fixed;
-      inset: 0;
       width: 100%;
       height: 100%;
     }
 
     #panel {
-    .info-panel {
       position: absolute;
       top: 12px;
       left: 12px;
-      z-index: 1000;
+      z-index: 10;
       background: rgba(255,255,255,0.96);
       padding: 12px 14px;
       border-radius: 10px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-      max-width: 320px;
+      max-width: 380px;
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     #panel h3 {
       margin: 0 0 4px;
       font-size: 14px;
       color: #1a4a7a;
-      top: 16px;
-      left: 16px;
-      z-index: 10;
-      width: min(420px, calc(100vw - 32px));
-      padding: 14px 16px 12px;
-      background: rgba(255, 255, 255, 0.96);
-      border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-      color: #1f2a37;
-      pointer-events: none;
-      backdrop-filter: blur(4px);
-    }
-
-    .info-panel h1 {
-      margin: 0 0 8px 0;
-      font-size: 18px;
-      line-height: 1.2;
-      font-weight: 700;
-    }
-
-    .info-row {
-      margin: 6px 0;
-      font-size: 13px;
-      line-height: 1.4;
-      word-break: break-word;
     }
 
     #panel p {
       margin: 0 0 8px;
       color: #555;
       font-size: 12px;
-    .label {
-      display: inline-block;
-      min-width: 92px;
-      font-weight: 700;
-      color: #334155;
-      vertical-align: top;
-    }
-
-    code {
-      display: block;
-      margin-top: 4px;
-      padding: 8px 10px;
-      background: #f1f5f9;
-      border: 1px solid #dbe4ee;
-      border-radius: 10px;
-      color: #0f172a;
-      white-space: pre-wrap;
-      word-break: break-all;
-      user-select: text;
     }
 
     #status {
       font-size: 11px;
-      color: #777;
+      color: #666;
       margin-top: 6px;
+      white-space: pre-line;
     }
 
     #legend {
       margin-top: 10px;
-      max-height: 340px;
+      max-height: 260px;
       overflow-y: auto;
     }
 
@@ -121,9 +76,6 @@
       margin-bottom: 4px;
       font-size: 11px;
       color: #444;
-    #status {
-      font-weight: 600;
-      color: #0f172a;
     }
 
     .legend-swatch {
@@ -136,8 +88,9 @@
 
     #tooltip {
       position: absolute;
+      z-index: 20;
       pointer-events: none;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.96);
       border: 1px solid #ccc;
       border-radius: 6px;
       padding: 7px 10px;
@@ -151,6 +104,20 @@
     #tooltip strong {
       color: #1a4a7a;
     }
+
+    .code-note {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 11px;
+      color: #666;
+    }
+
+    code {
+      background: #f3f3f3;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -158,348 +125,334 @@
     <h3 id="title">Dataset</h3>
     <p id="subtitle">Vector tiles served by Starlet</p>
     <div id="status">Loading configuration…</div>
+
     <div id="legend">
       <h4>Legend</h4>
-      <div style="font-size:11px;color:#666;">Waiting for features…</div>
+      <div class="legend-row">
+        <span class="legend-swatch" style="background: rgba(0,0,0,0.12);"></span>
+        <span>Default geometry style</span>
+      </div>
     </div>
-  <div id="map"></div>
 
-  <div class="info-panel">
-    <h1>Starlet map example</h1>
-    <div class="info-row"><span class="label">Dataset:</span> <span id="dataset-name"></span></div>
-    <div class="info-row">
-      <span class="label">Tile URL:</span>
-      <code id="tile-url"></code>
+    <div class="code-note">
+      This template auto-detects the MVT <code>source-layer</code> by reading a sample tile.
+      Students should mainly edit the styling block.
     </div>
-    <div class="info-row"><span class="label">Status:</span> <span id="status">Ready.</span></div>
   </div>
 
   <div id="map"></div>
   <div id="tooltip"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ol@v9.2.4/dist/ol.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ol@9.2.4/dist/ol.js"></script>
-  <script>
-    const PALETTE = [
-      "#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
-      "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac",
-      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
-    ];
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
-    const colorMap = {};
-    let paletteIdx = 0;
+  <script type="module">
+    import Pbf from "https://esm.sh/pbf@4.0.1";
+    import { VectorTile } from "https://esm.sh/@mapbox/vector-tile@2.0.4";
 
-    function colorFor(category) {
-      const key = category || "Unknown";
-      if (key === "Unknown") return "#cccccc";
-      if (!colorMap[key]) {
-        colorMap[key] = PALETTE[paletteIdx % PALETTE.length];
-        paletteIdx++;
-      }
-      return colorMap[key];
+    // ============================================================
+    // WORKSHOP SETTINGS
+    // ============================================================
+
+    // Choose the tile URL pattern that matches your server output.
+    // Use ONLY ONE of these.
+    function buildTileUrl(dataset) {
+      return `${window.location.origin}/datasets/${dataset}/mvt/{z}/{x}/{y}.mvt`;
     }
 
-    function hexToRgba(hex, alpha) {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `rgba(${r},${g},${b},${alpha})`;
-    }
+    // function buildTileUrl(dataset) {
+    //   return `${window.location.origin}/datasets/${dataset}/mvt/tile-{z}-{x}-{y}.mvt`;
+    // }
+
+    // Probe zoom used for source-layer detection.
+    // Lower values are often more reliable because they need fewer tiles.
+    const PROBE_ZOOMS = [8, 7, 6, 5, 4, 3, 2, 1, 0];
+
+    // ============================================================
+    // SHARED STATE
+    // ============================================================
 
     const seenLegendValues = new Set();
-    const styleCache = new Map();
+    let currentSourceLayer = null;
 
-    function getCategory(feature) {
-      // Try the likely vegetation field first, then fall back to common variants.
-      return (
-        feature.get("dominant_vegetation") ||
-        feature.get("DOMINANT_VEGETATION") ||
-        feature.get("vegetation") ||
-        feature.get("VEGETATION") ||
-        "Unknown"
-      );
+    // ============================================================
+    // EDITABLE STYLING BLOCK
+    // Students should mainly edit this part.
+    // ============================================================
+
+    function getCategory(properties) {
+      return "Default geometry style";
     }
 
     function updateLegend() {
       const legendEl = document.getElementById("legend");
-      const values = Array.from(seenLegendValues);
-      const sorted = values.filter(v => v !== "Unknown").sort((a, b) => a.localeCompare(b));
-      if (values.includes("Unknown")) sorted.push("Unknown");
+      if (!legendEl) return;
 
-      legendEl.innerHTML = "<h4>Legend</h4>";
-
-      if (sorted.length === 0) {
-        legendEl.innerHTML += '<div style="font-size:11px;color:#666;">No categories seen yet.</div>';
-        return;
-      }
-
-      for (const value of sorted) {
-        const color = colorFor(value);
-        const row = document.createElement("div");
-        row.className = "legend-row";
-        row.innerHTML = `
-          <div class="legend-swatch" style="background:${color}"></div>
-          <span>${value}</span>
-        `;
-        legendEl.appendChild(row);
-      }
+      legendEl.innerHTML = `
+        <h4>Legend</h4>
+        <div class="legend-row">
+          <span class="legend-swatch" style="background: rgba(0,0,0,0.12);"></span>
+          <span>Default geometry style</span>
+        </div>
+      `;
     }
 
-    function featureStyle(feature) {
-      const category = getCategory(feature);
-      seenLegendValues.add(category);
+    function addThematicLayers(map, sourceId, sourceLayer) {
+      map.addLayer({
+        id: "theme-fill",
+        type: "fill",
+        source: sourceId,
+        "source-layer": sourceLayer,
+        paint: {
+          "fill-color": "#000000",
+          "fill-opacity": 0.12
+        }
+      });
 
-      if (!styleCache.has(category)) {
-        const hex = colorFor(category);
-        styleCache.set(category, new ol.style.Style({
-          stroke: new ol.style.Stroke({
-            color: "rgba(30,30,30,0.5)",
-            width: 0.8
-          }),
-          fill: new ol.style.Fill({
-            color: hexToRgba(hex, 0.75)
-          })
-        }));
+      map.addLayer({
+        id: "theme-outline",
+        type: "line",
+        source: sourceId,
+        "source-layer": sourceLayer,
+        paint: {
+          "line-color": "#000000",
+          "line-width": 1.2
+        }
+      });
+    }
+
+    // ============================================================
+    // TILE / SOURCE-LAYER DISCOVERY HELPERS
+    // ============================================================
+
+    function lonLatToTile(lon, lat, z) {
+      const x = Math.floor(((lon + 180) / 360) * Math.pow(2, z));
+      const latRad = lat * Math.PI / 180;
+      const y = Math.floor(
+        (
+          (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2
+        ) * Math.pow(2, z)
+      );
+      return { x, y };
+    }
+
+    function fillTileUrl(template, z, x, y) {
+      return template
+        .replace("{z}", String(z))
+        .replace("{x}", String(x))
+        .replace("{y}", String(y));
+    }
+
+    function pickBestLayerName(layerNames, dataset) {
+      if (!layerNames.length) return null;
+
+      if (layerNames.includes("default")) return "default";
+      if (dataset && layerNames.includes(dataset)) return dataset;
+      if (layerNames.includes("layer0")) return "layer0";
+
+      return layerNames[0];
+    }
+
+    async function fetchTileLayerNames(tileUrl) {
+      const response = await fetch(tileUrl);
+      if (!response.ok) {
+        throw new Error(`Tile fetch failed (${response.status})`);
       }
 
-      return styleCache.get(category);
+      const contentType = response.headers.get("content-type") || "";
+      const arrayBuffer = await response.arrayBuffer();
+
+      // Many servers return application/x-protobuf or application/vnd.mapbox-vector-tile.
+      // We parse the bytes directly regardless of exact MIME string.
+      const tile = new VectorTile(new Pbf(new Uint8Array(arrayBuffer)));
+      return Object.keys(tile.layers || {});
     }
+
+    async function detectSourceLayer(dataset, bbox, tileUrlTemplate, maxZoom) {
+      const centerLon = bbox && bbox.length === 4 ? (bbox[0] + bbox[2]) / 2 : -117.37;
+      const centerLat = bbox && bbox.length === 4 ? (bbox[1] + bbox[3]) / 2 : 33.95;
+
+      const zoomCandidates = [];
+      for (const z of PROBE_ZOOMS) {
+        if (z <= maxZoom) zoomCandidates.push(z);
+      }
+      if (!zoomCandidates.length) zoomCandidates.push(Math.min(maxZoom, 8));
+
+      const attempts = [];
+
+      for (const z of zoomCandidates) {
+        const { x, y } = lonLatToTile(centerLon, centerLat, z);
+        const tileUrl = fillTileUrl(tileUrlTemplate, z, x, y);
+
+        try {
+          const layerNames = await fetchTileLayerNames(tileUrl);
+          if (layerNames.length) {
+            return {
+              sourceLayer: pickBestLayerName(layerNames, dataset),
+              layerNames,
+              probeUrl: tileUrl,
+              probeZ: z,
+              probeX: x,
+              probeY: y
+            };
+          }
+          attempts.push(`z${z}: no layers found`);
+        } catch (err) {
+          attempts.push(`z${z}: ${err.message}`);
+        }
+      }
+
+      throw new Error("Could not detect source-layer.\n" + attempts.join("\n"));
+    }
+
+    // ============================================================
+    // MAIN
+    // ============================================================
 
     async function main() {
       const statusEl = document.getElementById("status");
       const titleEl = document.getElementById("title");
+      const tooltipEl = document.getElementById("tooltip");
 
-      const response = await fetch("/config.json");
-      const config = await response.json();
+      const configResponse = await fetch("./config.json");
+      if (!configResponse.ok) {
+        throw new Error(`Could not load config.json (${configResponse.status})`);
+      }
+
+      const config = await configResponse.json();
 
       const dataset = config.dataset;
       const bbox = config.bbox;
       const maxZoom = config.max_zoom ?? 10;
 
+      if (!dataset) {
+        throw new Error("config.json is missing the 'dataset' field.");
+      }
+
       titleEl.textContent = dataset;
-      statusEl.textContent = "Loading tiles…";
 
-      const tileUrl = `${window.location.origin}/datasets/${dataset}/mvt/{z}/{x}/{y}.mvt`;
+      const tileUrlTemplate = buildTileUrl(dataset);
 
-      const mvtSource = new ol.source.VectorTile({
-        format: new ol.format.MVT(),
-        url: tileUrl,
+      statusEl.textContent =
+        `Loading map…\n` +
+        `Dataset: ${dataset}\n` +
+        `Probing one sample tile to detect source-layer…`;
+
+      const map = new maplibregl.Map({
+        container: "map",
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: "raster",
+              tiles: [
+                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              ],
+              tileSize: 256,
+              attribution: "&copy; OpenStreetMap contributors"
+            }
+          },
+          layers: [
+            {
+              id: "osm-base",
+              type: "raster",
+              source: "osm"
+            }
+          ]
+        },
+        center: [-117.37, 33.95],
+        zoom: 10,
         maxZoom: maxZoom
       });
 
-      const mvtLayer = new ol.layer.VectorTile({
-        source: mvtSource,
-        style: featureStyle,
-        renderMode: "vector"
-      });
-    (function () {
-      const defaultDataset = 'TIGER2018_COUNTY';
-      const params = new URLSearchParams(window.location.search);
-      const dataset = params.get('dataset') || defaultDataset;
+      map.addControl(new maplibregl.NavigationControl(), "top-right");
 
-      const templateUrl = `${window.location.origin}/tiles/${dataset}/mvt/{z}/{x}/{y}.mvt`;
+      const detected = await detectSourceLayer(dataset, bbox, tileUrlTemplate, maxZoom);
+      currentSourceLayer = detected.sourceLayer;
 
-      const datasetNameEl = document.getElementById('dataset-name');
-      const tileUrlEl = document.getElementById('tile-url');
-      const statusEl = document.getElementById('status');
+      statusEl.textContent =
+        `Detected source-layer: ${currentSourceLayer}\n` +
+        `Available layer names: ${detected.layerNames.join(", ")}\n` +
+        `Probe tile: z${detected.probeZ}/${detected.probeX}/${detected.probeY}`;
 
-      datasetNameEl.textContent = dataset;
-      tileUrlEl.textContent = templateUrl;
-
-      function setStatus(message) {
-        statusEl.textContent = message;
-      }
-
-      function hashString(value) {
-        let hash = 0;
-        const text = String(value || '');
-        for (let i = 0; i < text.length; i++) {
-          hash = ((hash << 5) - hash) + text.charCodeAt(i);
-          hash |= 0;
-        }
-        return Math.abs(hash);
-      }
-
-      function regionFillColor(key) {
-        const hash = hashString(key);
-        const r = 35 + (hash % 120);
-        const g = 70 + (Math.floor(hash / 120) % 120);
-        const b = 120 + (Math.floor(hash / 240) % 110);
-        return `rgba(${r}, ${g}, ${b}, 0.42)`;
-      }
-
-      const styleCache = new Map();
-
-      function featureStyle(feature) {
-        const geom = feature.getGeometry();
-        const geomType = geom ? geom.getType() : 'Unknown';
-        const key = feature.get('GEOID') || feature.get('NAME') || feature.getId() || 'default';
-        const cacheKey = `${geomType}|${key}`;
-
-        if (styleCache.has(cacheKey)) {
-          return styleCache.get(cacheKey);
-        }
-
-        let style;
-
-        if (geomType === 'Point' || geomType === 'MultiPoint') {
-          style = new ol.style.Style({
-            image: new ol.style.Circle({
-              radius: 6,
-              fill: new ol.style.Fill({
-                color: 'rgba(217, 95, 14, 0.9)'
-              }),
-              stroke: new ol.style.Stroke({
-                color: 'rgba(255, 255, 255, 1)',
-                width: 1
-              })
-            })
-          });
-        } else if (
-          geomType === 'Polygon' ||
-          geomType === 'MultiPolygon' ||
-          geomType === 'GeometryCollection'
-        ) {
-          style = new ol.style.Style({
-            fill: new ol.style.Fill({
-              color: regionFillColor(key)
-            }),
-            stroke: new ol.style.Stroke({
-              color: 'rgba(8, 48, 107, 0.95)',
-              width: 1.2
-            })
-          });
-        } else {
-          style = new ol.style.Style({
-            stroke: new ol.style.Stroke({
-              color: 'rgba(8, 48, 107, 0.95)',
-              width: 1.2
-            }),
-            fill: new ol.style.Fill({
-              color: regionFillColor(key)
-            })
-          });
-        }
-
-        styleCache.set(cacheKey, style);
-        return style;
-      }
-
-      const base = new ol.layer.Tile({
-        source: new ol.source.OSM()
-      });
-
-      const vectorSource = new ol.source.VectorTile({
-        format: new ol.format.MVT(),
-        url: templateUrl
-      });
-
-      vectorSource.on('tileloadstart', function () {
-        setStatus('Loading vector tiles…');
-      });
-
-      vectorSource.on('tileloadend', function () {
-        setStatus('Vector tiles loaded.');
-      });
-
-      vectorSource.on('tileloaderror', function () {
-        setStatus('Vector tile load error. Check the Flask console.');
-      });
-
-      const vectorLayer = new ol.layer.VectorTile({
-        source: vectorSource,
-        style: featureStyle
-      });
-
-      const map = new ol.Map({
-        target: "map",
-        layers: [
-          new ol.layer.Tile({
-            source: new ol.source.OSM()
-          }),
-          mvtLayer
-        ],
-        view: new ol.View({
-          center: ol.proj.fromLonLat([-117.37, 33.95]),
-          zoom: 10,
-          maxZoom: maxZoom
-        })
-      });
-
-      if (bbox && bbox.length === 4) {
-        const extent = ol.proj.transformExtent(bbox, "EPSG:4326", "EPSG:3857");
-        map.getView().fit(extent, {
-          padding: [40, 40, 40, 360],
-          maxZoom: maxZoom,
-          duration: 300
+      map.on("load", () => {
+        map.addSource("dataset-source", {
+          type: "vector",
+          tiles: [tileUrlTemplate],
+          minzoom: 0,
+          maxzoom: maxZoom
         });
-      }
 
-      let successCount = 0;
-      let errorCount = 0;
-      const map = new ol.Map({
-        target: 'map',
-        layers: [base, vectorLayer],
-        view: new ol.View({
-          center: ol.proj.fromLonLat([-98.5, 39.5]),
-          zoom: 3
-        })
-      });
-
-      mvtSource.on("tileloadstart", () => {
-        statusEl.textContent = "Loading tiles…";
-      });
-
-      mvtSource.on("tileloadend", () => {
-        successCount++;
+        addThematicLayers(map, "dataset-source", currentSourceLayer);
         updateLegend();
-        statusEl.textContent = `Ready. Loaded ${successCount} tile(s).`;
-      });
 
-      mvtSource.on("tileloaderror", () => {
-        errorCount++;
-        if (successCount === 0) {
-          statusEl.textContent = "Some tile requests failed. If all tiles stay empty, check field names or bbox.";
-        } else {
-          statusEl.textContent = `Ready with partial coverage. Loaded ${successCount} tile(s), ${errorCount} miss(es).`;
+        if (bbox && bbox.length === 4) {
+          map.fitBounds(
+            [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
+            {
+              padding: { top: 40, bottom: 40, left: 400, right: 40 },
+              maxZoom: maxZoom,
+              duration: 300
+            }
+          );
         }
-      });
 
-      const tooltipEl = document.getElementById("tooltip");
+        map.on("mousemove", "theme-fill", e => {
+          const feature = e.features && e.features[0];
+          if (!feature) {
+            tooltipEl.style.display = "none";
+            map.getCanvas().style.cursor = "";
+            return;
+          }
 
-      map.on("pointermove", evt => {
-        const feature = map.forEachFeatureAtPixel(evt.pixel, f => f, { hitTolerance: 3 });
+          const props = feature.properties || {};
+          const name =
+            props.PARK_NAME ||
+            props.park_name ||
+            props.NAME ||
+            props.name ||
+            "Feature";
 
-        if (!feature) {
+          const category = getCategory(props);
+          seenLegendValues.add(category);
+
+          tooltipEl.innerHTML = `
+            <strong>${name}</strong><br>
+            Category: ${category}
+          `;
+
+          tooltipEl.style.display = "block";
+          tooltipEl.style.left = (e.point.x + 14) + "px";
+          tooltipEl.style.top = (e.point.y + 14) + "px";
+          map.getCanvas().style.cursor = "pointer";
+        });
+
+        map.on("mouseleave", "theme-fill", () => {
           tooltipEl.style.display = "none";
-          map.getTargetElement().style.cursor = "";
-          return;
-        }
+          map.getCanvas().style.cursor = "";
+        });
 
-        const name =
-          feature.get("PARK_NAME") ||
-          feature.get("park_name") ||
-          feature.get("NAME") ||
-          feature.get("name") ||
-          "Feature";
+        map.on("idle", () => {
+          updateLegend();
+        });
 
-        const category = getCategory(feature);
+        statusEl.textContent =
+          `Ready.\n` +
+          `Detected source-layer: ${currentSourceLayer}\n` +
+          `Available layer names: ${detected.layerNames.join(", ")}`;
+      });
 
-        tooltipEl.innerHTML = `<strong>${name}</strong><br>Category: ${category}`;
-        tooltipEl.style.display = "block";
-        tooltipEl.style.left = (evt.pixel[0] + 14) + "px";
-        tooltipEl.style.top = (evt.pixel[1] + 14) + "px";
-        map.getTargetElement().style.cursor = "pointer";
+      map.on("error", err => {
+        console.error(err);
       });
     }
 
     main().catch(err => {
       console.error(err);
-      document.getElementById("status").textContent = "Failed to initialize map.";
+      document.getElementById("status").textContent =
+        "Failed to initialize map.\n" + err.message;
     });
-      setStatus('Ready to load vector tiles.');
-    })();
   </script>
 </body>
 </html>
