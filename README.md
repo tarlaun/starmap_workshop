@@ -285,7 +285,7 @@ function addThematicLayers(map, sourceId, sourceLayer) {
 ## Common Issues
 
 ### Map shows nothing
-- Check tiles exist: datasets/<dataset>/mvt/  
+- Check tiles exist and the path is correct: datasets/<dataset>/mvt/  
 - Ensure dataset is not empty  
 - Check geometry validity  
 
@@ -297,4 +297,6 @@ This is normal if:
 - Zoom exceeds built level (default: 10)  
 
 ---
+
+Feel free to check errors and use LLM for help to resolve possible issues in your code.
 
