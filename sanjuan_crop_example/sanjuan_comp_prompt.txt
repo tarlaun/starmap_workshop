@@ -1,0 +1,111 @@
+You are a Geospatial Data Engineer specializing in Python and GeoPandas.
+
+Your task is to generate a complete, executable Python script that performs
+a spatial data composition workflow.
+
+------------------------------------------------------------
+STEP 1: INPUT DATASETS
+
+You are given two GeoJSON datasets:
+
+=== CROPS ===
+Rows: 16110
+class              object
+class_name         object
+subclass           object
+subclass_name      object
+acres             float64
+geometry         geometry
+dtype: object
+  class                       class_name subclass  \
+0     T   TRUCK, NURSERY AND BERRY CROPS      T30   
+1    YP  Young perennial fruits and nuts       YP   
+2     C           CITRUS AND SUBTROPICAL       C4   
+
+                               subclass_name       acres  \
+0  Lettuce/Leafy Greens [for remote sensing]   23.772118   
+1                                    Unknown  116.482512   
+2                                      Dates    1.976128   
+
+                                            geometry  
+0  POLYGON Z ((-117.11481 33.82299 0, -117.11472 ...  
+1  POLYGON Z ((-116.13814 33.69634 0, -116.13813 ...  
+2  POLYGON Z ((-116.13284 33.67481 0, -116.13355 ...  
+Saved → /Users/shaolinx/Desktop/starmap_workshop/raw_dataset/crops_riverside_clean.geojson
+
+=== WATERSHEDS ===
+Rows: 25
+watershed_name       object
+regional_basin       object
+watershed_acres     float64
+geometry           geometry
+dtype: object
+  watershed_name  regional_basin  watershed_acres  \
+0       COLORADO  COLORADO RIVER    439799.804006   
+1           RICE  COLORADO RIVER    160001.222454   
+2           WARD  COLORADO RIVER     62968.197540   
+
+                                            geometry  
+0  POLYGON ((-114.67332 34.0794, -114.66582 34.07...  
+1  POLYGON ((-114.91906 34.07998, -114.91018 34.0...  
+2  POLYGON ((-115.2041 34.07638, -115.20112 34.07...  
+Saved → /Users/shaolinx/Desktop/starmap_workshop/raw_dataset/watersheds_clean.geojson
+
+
+------------------------------------------------------------
+STEP 2: GOAL (Natural Language Task)
+
+Show the crop types within "watershed_name": "SAN JUAN"
+
+Definition:
+- For each SAN JUAN polygon, intersect it with all crop polygons
+- for each crop area, shows the subclass and class name and acres
+
+------------------------------------------------------------
+STEP 3: GEOSPATIAL REQUIREMENTS
+
+- Use GeoPandas
+- Reproject both datasets to an equal-area CRS before computing areas
+  (use EPSG:3310 — California Albers)
+- Ensure geometries are valid (fix using buffer(0) if needed)
+- Use spatial overlay (intersection)
+- Compute area using geometry.area
+
+------------------------------------------------------------
+STEP 4: OUTPUT REQUIREMENTS
+
+- Output must be a GeoJSON file
+- Final CRS must be EPSG:4326 (WGS84)
+- Output fields:
+    - crop _class
+- crop_subclass
+- crop_acres
+    - geometry
+
+------------------------------------------------------------
+STEP 5: SCRIPT REQUIREMENTS
+
+- The script must:
+  - Accept 3 command-line arguments:
+        <crops_geojson> <watersheds_geojson> <output_geojson>
+  - Include clear structure:
+        * helper function to load & clean data
+        * function to compute dominant vegetation
+        * main() function
+  - Print useful progress logs
+  - Be fully executable as a standalone script
+
+------------------------------------------------------------
+STEP 6: CODING STYLE
+
+- Use clean, readable Python
+- Use functions (no monolithic code)
+- Add minimal helpful comments
+- Avoid unnecessary dependencies (only geopandas, sys)
+
+------------------------------------------------------------
+FINAL OUTPUT FORMAT
+
+Return ONLY the single Python script.
+Do NOT include explanations.
+Do NOT include markdown fences.

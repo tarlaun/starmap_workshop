@@ -1,0 +1,161 @@
+
+You are a Frontend Developer specializing in Geospatial Web Apps.
+Create HTML code using the [Map Library: e.g., OpenLayers 9] library to display a vector tile map.
+STEP 1: INFRASTRUCTURE & SOURCE
+
+Map Library: OpenLayers v9.2.4 (via CDN).
+
+Base Tile Path: ${window.location.origin}/datasets/${dataset}/mvt/{z}/{x}/{y}.mvt
+
+Use OSM as base map. Make sure the base map is seamless integrated in the MapLibre visualization.
+
+Default Dataset: crops_sanjuan
+
+Target Container ID: map
+
+Initial Viewport: Center: [-98.5, 39.5] | Zoom: 3.
+
+STEP 2: DATA SCHEMA (MVT METADATA)
+
+Source Layer Name: (Generic/Not specified in code, but uses standard MVT format).
+
+Fields/Attributes: * geometry: The shapes (Polygons/Points) included in the MVT tiles.
+{
+  "attributes": [
+    {
+      "name": "crop_class",
+      "stats": {
+        "non_null_count": 202,
+        "approx_distinct": 7,
+        "avg_length": 17.024752475247524,
+        "min_length": 4,
+        "max_length": 30,
+        "top_k": [
+          {
+            "value": "CITRUS AND SUBTROPICAL",
+            "count": 110
+          },
+          {
+            "value": "VINEYARDS",
+            "count": 62
+          },
+          {
+            "value": "IDLE",
+            "count": 12
+          },
+          {
+            "value": "DECIDUOUS FRUITS AND NUTS",
+            "count": 12
+          },
+          {
+            "value": "UNCLASSIFIED FALLOW",
+            "count": 4
+          },
+          {
+            "value": "TRUCK, NURSERY AND BERRY CROPS",
+            "count": 1
+          },
+          {
+            "value": "PASTURE",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "crop_subclass",
+      "stats": {
+        "non_null_count": 202,
+        "approx_distinct": 9,
+        "avg_length": 27.717821782178216,
+        "min_length": 7,
+        "max_length": 185,
+        "top_k": [
+          {
+            "value": "Unknown",
+            "count": 105
+          },
+          {
+            "value": "Avocados",
+            "count": 60
+          },
+          {
+            "value": "Miscellaneous deciduous (a type of deciduous orchard not specifically listed in the legend) [Chestnuts, figs, hazelnuts, jujube, persimmons, mixed deciduous, grouped for remote sensing]",
+            "count": 12
+          },
+          {
+            "value": "Land not cropped the current or previous crop season but cropped within the past three years.",
+            "count": 9
+          },
+          {
+            "value": "Miscellaneous [Cherimoya, guava, jojoba, mango, Mexican hawthorn, nopal, mixed subtropical fruits, grouped for remote sensing]",
+            "count": 6
+          },
+          {
+            "value": "Olives (oil and table olives, grouped for remote sensing)",
+            "count": 5
+          },
+          {
+            "value": "Long term idle, land that has been fallow or idle for four or more years.",
+            "count": 3
+          },
+          {
+            "value": "Lettuce/Leafy Greens [for remote sensing]",
+            "count": 1
+          },
+          {
+            "value": "Alfalfa & alfalfa mixtures",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "crop_acres",
+      "stats": {
+        "non_null_count": 202,
+        "approx_distinct": 201,
+        "top_k": []
+      }
+    },
+    {
+      "name": "geometry",
+      "stats": {
+        "mbr": [
+          -117.50971691431391,
+          33.5000416113248,
+          -117.29865540284219,
+          33.59105691124285
+        ],
+        "geom_types": {
+          "Polygon": 201,
+          "MultiPolygon": 1
+        },
+        "total_points": 0
+      }
+    }
+  ]
+}
+STEP 3: VISUALIZATION & UI GOALS (Natural Language)
+
+UI Layout: Create a fullscreen map. In the top-left, place a floating white info panel (rgba(255,255,255,0.96)) with rounded corners and a shadow.
+
+Display Info: The panel must show a title ("Starlet map example"), the active dataset name, present  the crops subclass as legend.
+
+Styling Logic: different crop_class should receive a different color.
+
+Dynamics: Use URLSearchParams to grab a dataset key from the URL. If missing, use the default.
+when click on a crop polygon, should display the crop name and acres
+STEP 4: SYSTEM INSTRUCTIONS
+
+Include the OpenLayers CSS in the <head> and JS at the end of the <body>.
+
+Implement event listeners on the vector source:
+
+On tileloadstart: Update status to "Loading vector tiles…".
+
+On tileloadend: Update status to "Vector tiles loaded.".
+
+On tileloaderror: Display an error message mentioning the Flask console.
+
+Ensure the code uses ol.proj.fromLonLat for the initial view center.

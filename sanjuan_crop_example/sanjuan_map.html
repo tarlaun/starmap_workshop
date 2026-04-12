@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Starlet map example</title>
+
+  <!-- OpenLayers v9.2.4 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@9.2.4/ol.css" />
+
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f3f5f7;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #dde5eb;
+    }
+
+    .info-panel {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      width: min(400px, calc(100vw - 32px));
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 18px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(20, 30, 45, 0.08);
+      backdrop-filter: blur(8px);
+      padding: 16px 16px 14px;
+      color: #102030;
+    }
+
+    .panel-title {
+      font-size: 18px;
+      line-height: 1.2;
+      font-weight: 800;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-subtitle {
+      font-size: 13px;
+      color: #5c6b7a;
+      margin: 0 0 10px;
+    }
+
+    .status {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 0 12px;
+      color: #334155;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 14px 0 8px;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      max-height: 260px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #1f2937;
+      line-height: 1.2;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease, border-color 0.12s ease;
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    .legend-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(15, 23, 42, 0.16);
+      background: rgba(241, 245, 249, 1);
+    }
+
+    .legend-item.inactive {
+      opacity: 0.45;
+      filter: grayscale(0.15);
+    }
+
+    .legend-item.active {
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+    }
+
+    .legend-item .label-wrap {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .legend-item .label-main {
+      display: block;
+      font-weight: 600;
+      color: #111827;
+      word-break: break-word;
+    }
+
+    .legend-item .label-sub {
+      display: block;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      flex: 0 0 14px;
+      box-sizing: border-box;
+    }
+
+    .details {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+
+    .details strong {
+      color: #0f172a;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .hint code {
+      background: rgba(15, 23, 42, 0.06);
+      padding: 1px 5px;
+      border-radius: 6px;
+    }
+
+    .ol-control button {
+      background-color: rgba(18, 28, 40, 0.85);
+    }
+
+    .ol-control button:hover,
+    .ol-control button:focus {
+      background-color: rgba(18, 28, 40, 1);
+    }
+
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      transform: translate(12px, 12px);
+      background: rgba(15, 23, 42, 0.95);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      min-width: 170px;
+      max-width: 280px;
+      font-size: 12px;
+      line-height: 1.35;
+      display: none;
+      z-index: 1500;
+      white-space: normal;
+    }
+
+    .tooltip .tip-title {
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .tooltip .tip-row {
+      opacity: 0.95;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="info-panel">
+    <h1 class="panel-title">Starlet map example</h1>
+    <p class="panel-subtitle">Dataset: <span id="datasetName"></span></p>
+    <p class="status" id="statusText">Loading vector tiles...</p>
+
+    <div class="section-label">Crop class legend</div>
+    <div class="legend" id="legend"></div>
+
+    <div class="section-label">Selected crop</div>
+    <div class="details" id="details">
+      Click a crop polygon to see the crop name and acres.
+    </div>
+
+    <div class="hint">
+      Tip: add <code>?dataset=crops_sanjuan</code> or another dataset key to the URL.
+    </div>
+  </div>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <!-- OpenLayers v9.2.4 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/ol@9.2.4/dist/ol.js"></script>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const dataset = params.get("dataset") || "crops_sanjuan";
+
+      const datasetNameEl = document.getElementById("datasetName");
+      const statusTextEl = document.getElementById("statusText");
+      const legendEl = document.getElementById("legend");
+      const detailsEl = document.getElementById("details");
+      const tooltipEl = document.getElementById("tooltip");
+
+      datasetNameEl.textContent = dataset;
+
+      const cropClassColors = {
+        "CITRUS AND SUBTROPICAL": "#f59e0b",
+        "VINEYARDS": "#7c3aed",
+        "IDLE": "#9ca3af",
+        "DECIDUOUS FRUITS AND NUTS": "#22c55e",
+        "UNCLASSIFIED FALLOW": "#f97316",
+        "TRUCK, NURSERY AND BERRY CROPS": "#06b6d4",
+        "PASTURE": "#84cc16",
+        "default": "#3b82f6"
+      };
+
+      const cropClassOrder = [
+        "CITRUS AND SUBTROPICAL",
+        "VINEYARDS",
+        "DECIDUOUS FRUITS AND NUTS",
+        "IDLE",
+        "UNCLASSIFIED FALLOW",
+        "TRUCK, NURSERY AND BERRY CROPS",
+        "PASTURE",
+        "Other"
+      ];
+
+      const visibleClasses = new Set(cropClassOrder);
+
+      function colorForCropClass(cropClass) {
+        return cropClassColors[cropClass] || cropClassColors.default;
+      }
+
+      function rgbaFromHex(hex, alpha) {
+        const normalized = String(hex).replace("#", "");
+        const full = normalized.length === 3
+          ? normalized.split("").map((c) => c + c).join("")
+          : normalized;
+
+        const r = parseInt(full.slice(0, 2), 16);
+        const g = parseInt(full.slice(2, 4), 16);
+        const b = parseInt(full.slice(4, 6), 16);
+        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+      }
+
+      function cropClassKey(value) {
+        return cropClassColors[value] ? value : "Other";
+      }
+
+      function makeFeatureKey(feature) {
+        const id = feature.getId();
+        if (id !== undefined && id !== null) {
+          return String(id);
+        }
+        return [
+          feature.get("crop_class") || "",
+          feature.get("crop_subclass") || "",
+          feature.get("crop_acres") || ""
+        ].join("|");
+      }
+
+      let selectedKey = null;
+      let hoveredKey = null;
+      const styleCache = new Map();
+
+      function getStyle(feature) {
+        const cropClass = cropClassKey(feature.get("crop_class") || "Other");
+
+        if (!visibleClasses.has(cropClass)) {
+          return null;
+        }
+
+        const featureKey = makeFeatureKey(feature);
+        const selected = featureKey === selectedKey;
+        const hovered = featureKey === hoveredKey;
+
+        const key = cropClass + "|" + (selected ? "selected" : "normal") + "|" + (hovered ? "hovered" : "base");
+        if (styleCache.has(key)) {
+          return styleCache.get(key);
+        }
+
+        const color = colorForCropClass(cropClass === "Other" ? "default" : cropClass);
+
+        const style = new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: rgbaFromHex(color, selected ? 0.58 : hovered ? 0.48 : 0.34)
+          }),
+          stroke: new ol.style.Stroke({
+            color: selected ? "#111827" : hovered ? "#0f172a" : color,
+            width: selected ? 3.0 : hovered ? 2.4 : 1.4
+          }),
+          zIndex: selected ? 2 : hovered ? 1 : 0
+        });
+
+        styleCache.set(key, style);
+        return style;
+      }
+
+      const legendEntries = [
+        { label: "CITRUS AND SUBTROPICAL", note: "Tap to hide/show" },
+        { label: "VINEYARDS", note: "Tap to hide/show" },
+        { label: "DECIDUOUS FRUITS AND NUTS", note: "Tap to hide/show" },
+        { label: "IDLE", note: "Tap to hide/show" },
+        { label: "UNCLASSIFIED FALLOW", note: "Tap to hide/show" },
+        { label: "TRUCK, NURSERY AND BERRY CROPS", note: "Tap to hide/show" },
+        { label: "PASTURE", note: "Tap to hide/show" },
+        { label: "Other", note: "Unknown crop_class" }
+      ];
+
+      function renderLegend() {
+        legendEl.innerHTML = legendEntries.map(function (entry) {
+          const visible = visibleClasses.has(entry.label);
+          const color = colorForCropClass(entry.label === "Other" ? "default" : entry.label);
+
+          return (
+            '<div class="legend-item ' + (visible ? "active" : "inactive") + '" ' +
+              'data-class="' + entry.label + '">' +
+              '<span class="swatch" style="background:' + color + '"></span>' +
+              '<div class="label-wrap">' +
+                '<span class="label-main">' + entry.label + '</span>' +
+                '<span class="label-sub">' + entry.note + '</span>' +
+              '</div>' +
+            '</div>'
+          );
+        }).join("");
+
+        legendEl.querySelectorAll(".legend-item").forEach(function (el) {
+          el.addEventListener("click", function () {
+            const cls = el.getAttribute("data-class");
+            if (visibleClasses.has(cls)) {
+              if (visibleClasses.size === 1) return;
+              visibleClasses.delete(cls);
+            } else {
+              visibleClasses.add(cls);
+            }
+
+            styleCache.clear();
+            vectorLayer.changed();
+            renderLegend();
+          });
+        });
+      }
+
+      renderLegend();
+
+      const tileUrl = window.location.origin + "/datasets/" + dataset + "/mvt/{z}/{x}/{y}.mvt";
+
+      const vectorSource = new ol.source.VectorTile({
+        format: new ol.format.MVT(),
+        url: tileUrl,
+        overlap: false
+      });
+
+      vectorSource.on("tileloadstart", function () {
+        statusTextEl.textContent = "Loading vector tiles...";
+      });
+
+      vectorSource.on("tileloadend", function () {
+        statusTextEl.textContent = "Vector tiles loaded.";
+      });
+
+      vectorSource.on("tileloaderror", function () {
+        statusTextEl.textContent = "Vector tile error - check the Flask console and verify the MVT endpoint.";
+      });
+
+      const vectorLayer = new ol.layer.VectorTile({
+        source: vectorSource,
+        style: getStyle
+      });
+
+      const osmLayer = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+
+      const tooltipOverlay = new ol.Overlay({
+        element: tooltipEl,
+        offset: [12, 12],
+        positioning: "top-left",
+        stopEvent: false
+      });
+
+      const map = new ol.Map({
+        target: "map",
+        layers: [osmLayer, vectorLayer],
+        overlays: [tooltipOverlay],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([-98.5, 39.5]),
+          zoom: 3
+        })
+      });
+
+      function showTooltip(feature, coordinate) {
+        const cropClass = feature.get("crop_class") || "Unknown";
+        const cropSubclass = feature.get("crop_subclass") || "Unknown";
+        const cropAcres = feature.get("crop_acres");
+
+        const acresText =
+          cropAcres === null || cropAcres === undefined || cropAcres === ""
+            ? "N/A"
+            : Number(cropAcres).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+        tooltipEl.innerHTML =
+          '<div class="tip-title">' + cropSubclass + '</div>' +
+          '<div class="tip-row"><strong>Class:</strong> ' + cropClass + '</div>' +
+          '<div class="tip-row"><strong>Acres:</strong> ' + acresText + '</div>';
+
+        tooltipOverlay.setPosition(coordinate);
+        tooltipEl.style.display = "block";
+      }
+
+      function hideTooltip() {
+        tooltipOverlay.setPosition(undefined);
+        tooltipEl.style.display = "none";
+      }
+
+      map.on("pointermove", function (evt) {
+        if (evt.dragging) return;
+
+        const pixel = map.getEventPixel(evt.originalEvent);
+        let foundFeature = null;
+
+        map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+          if (layer === vectorLayer) {
+            const cls = cropClassKey(feature.get("crop_class") || "Other");
+            if (!visibleClasses.has(cls)) return false;
+            foundFeature = feature;
+            return true;
+          }
+          return false;
+        });
+
+        if (foundFeature) {
+          const featureKey = makeFeatureKey(foundFeature);
+          hoveredKey = featureKey;
+          map.getTargetElement().style.cursor = "pointer";
+          showTooltip(foundFeature, evt.coordinate);
+          vectorLayer.changed();
+        } else {
+          hoveredKey = null;
+          map.getTargetElement().style.cursor = "";
+          hideTooltip();
+          vectorLayer.changed();
+        }
+      });
+
+      map.on("click", function (evt) {
+        let featureFound = null;
+
+        map.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
+          if (layer === vectorLayer) {
+            const cls = cropClassKey(feature.get("crop_class") || "Other");
+            if (!visibleClasses.has(cls)) return false;
+            featureFound = feature;
+            return true;
+          }
+          return false;
+        });
+
+        if (!featureFound) {
+          selectedKey = null;
+          vectorLayer.changed();
+          detailsEl.innerHTML = "Click a crop polygon to see the crop name and acres.";
+          return;
+        }
+
+        selectedKey = makeFeatureKey(featureFound);
+        vectorLayer.changed();
+
+        const cropClass = featureFound.get("crop_class") || "Unknown";
+        const cropSubclass = featureFound.get("crop_subclass") || "Unknown";
+        const cropAcres = featureFound.get("crop_acres");
+
+        const acresText =
+          cropAcres === null || cropAcres === undefined || cropAcres === ""
+            ? "N/A"
+            : Number(cropAcres).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+        detailsEl.innerHTML =
+          "<div><strong>Crop name:</strong> " + cropSubclass + "</div>" +
+          "<div><strong>Crop class:</strong> " + cropClass + "</div>" +
+          "<div><strong>Acres:</strong> " + acresText + "</div>";
+      });
+
+      map.on("moveend", function () {
+        styleCache.clear();
+        vectorLayer.changed();
+      });
+    })();
+  </script>
+</body>
+</html>
