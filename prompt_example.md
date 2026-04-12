@@ -7,7 +7,7 @@ STEP 1: INFRASTRUCTURE & SOURCE
 
 Map Library: OpenLayers v9.2.4 (via CDN).
 
-Base Tile Path: ${window.location.origin}/tiles/${dataset}/mvt/{z}/{x}/{y}.mvt
+Base Tile Path: ${window.location.origin}/datasets/${dataset}/mvt/{z}/{x}/{y}.mvt
 
 Use OSM as base map. Make sure the base map is seamless integrated in the visualization: const base = new ol.layer.Tile({
   source: new ol.source.OSM()
