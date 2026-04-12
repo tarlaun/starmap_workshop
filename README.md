@@ -100,7 +100,7 @@ The default map will appear unstyled (gray polygons).
 To make it informative:
 1. Open map.html  
 2. Insert styling code into the LLM styling block  
-3. Use the prompt in ![prompt_styling.txt](prompt_styling.txt) to generate styling  
+3. Use the prompt in [prompt_styling.txt](prompt_styling.txt) to generate styling  
 
 ### Example Styled Output
 
