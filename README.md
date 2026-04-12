@@ -29,8 +29,8 @@ To generate a script that combines:
 - Riverside_Parks.geojson
 - Riverside_VegetationTypes.geojson
 
-Send the prompt in `prompt_data_comp.txt` to your LLM.  
-It should return a script similar to `data_comp.py`.
+Send the prompt in [prompt_data_comp.txt](prompt_data_comp.txt) to your LLM.  
+It should return a script similar to [data_comp.py](data_comp.py).
 
 Then run:
 
@@ -98,7 +98,7 @@ datasets/<dataset_name>/mvt/{z}/{x}/{y}.mvt
 The default map will appear unstyled (gray polygons).
 
 To make it informative:
-1. Open map.html  
+1. Open [map.html](map/html)
 2. Insert styling code into the LLM styling block  
 3. Use the prompt in [prompt_styling.txt](prompt_styling.txt) to generate styling  
 
