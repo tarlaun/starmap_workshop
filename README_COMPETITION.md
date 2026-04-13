@@ -5,7 +5,7 @@
 ## 🎭 Your Role: Watershed Manager
 
 
-You are a member of the State and Regional Water Boards who is responsible for protecting California’s water resources. Your responsibility is to understand and communicate the **agricultural landscape** in Riverside County. Using geospatial data and interactive visualization, you will produce map visualizations that highlights key patterns, insights, and metrics about crop production in the Riverside County watershed areas.
+You are a member of the State and Regional Water Boards who is responsible for protecting Riverside County’s water resources. Your responsibility is to understand and communicate the **agricultural landscape** in Riverside County. Using geospatial data and interactive visualization, you will produce map visualizations that highlights key patterns, insights, and metrics about crop production in the Riverside County watershed areas.
 
 Note: watershed is an area of land that catches rain and snow, draining all surface water and groundwater into a common outlet, such as a river, lake, or ocean. 
 
