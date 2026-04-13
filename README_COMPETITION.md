@@ -5,7 +5,7 @@
 ## 🎭 Your Role: Watershed Manager
 
 
-You are a member of the State and Regional Water Boards who is responsible for protecting Riverside County’s water resources. Your responsibility is to understand and communicate the **agricultural landscape** in Riverside County. Using geospatial data and interactive visualization, you will produce map visualizations that highlights key patterns, insights, and metrics about crop production in the Riverside County watershed areas.
+You are a member of the State and Regional Water Boards who is responsible for protecting Riverside County’s water resources. Your responsibility is to understand and communicate the **agricultural landscape** in Riverside County. Using geospatial data and interactive visualization, you will produce map visualizations that highlights key patterns, insights, and metrics about crop production in the Riverside County watershed areas. You will work in teams of three members and one submission from each team is required.
 
 Note: watershed is an area of land that catches rain and snow, draining all surface water and groundwater into a common outlet, such as a river, lake, or ocean. 
 
@@ -24,6 +24,11 @@ You are expected to combine the datasets to yield meaningful visualization for t
 ---
 
 ## 🗺️ Deliverables
+
+You will upload a PDF alongside your code / dataset files to this link. Please put everything in a .zip file:
+(Competition Results Submission)[https://docs.google.com/forms/d/e/1FAIpQLScHg0d5F9j6L0WpdlSiGmCXcch2hmBlx5ReylPCN7z8x0g3Ng/viewform?usp=publish-editor]
+The deadline is 11:40. In the PDF you will have screenshot(s) of the visualizations you created alongside a description of what we can see on the map. 
+
 **MVT tiles** - Use StarLet package to generate MVT tiles for the datasets to be visualized.
 
 **HTML files** - Create a .html file for each of three tasks:
