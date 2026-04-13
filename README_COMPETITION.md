@@ -86,8 +86,8 @@ Reveal the diversity of crops in the watersheds.
 Identify and communicate the **dominant crop type** in each watershed.
 
 **Requirements:**
-- Aggregate crop data within your watershed
-- Determine the **crop with the highest total acreage**
+- Aggregate crop data within each watershed
+- Determine the **crop with the highest total acreage** 
 - Visually highlight the watersheds based on their dominant crop
 
 **What we’re looking for:**
