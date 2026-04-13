@@ -43,7 +43,7 @@ You will be evaluated based on how many tasks you complete **and** how well you 
 ### 🌾 Task 1: Total Crop Area (Gradient Visualization)
 
 **Objective:**  
-Show how crop acreage is distributed across your watershed.
+Show how crop acreage is distributed across the watersheds.
 
 **Requirements:**
 - Calculate total acreage per spatial unit (e.g., polygon or aggregated area)
@@ -60,7 +60,7 @@ Show how crop acreage is distributed across your watershed.
 ### 🌱 Task 2: Crop Diversity (Categorical Visualization)
 
 **Objective:**  
-Reveal the diversity of crops in your watershed.
+Reveal the diversity of crops in the watersheds.
 
 **Requirements:**
 - Use **categorical coloring** to represent different crop types (e.g., `class_name`)
