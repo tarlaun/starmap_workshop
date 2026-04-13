@@ -27,7 +27,7 @@ You are expected to combine the datasets to yield meaningful visualization for t
 
 You will upload a PDF alongside your code / dataset files to this link. Please put everything in a .zip file:
 (Competition Results Submission)[https://docs.google.com/forms/d/e/1FAIpQLScHg0d5F9j6L0WpdlSiGmCXcch2hmBlx5ReylPCN7z8x0g3Ng/viewform?usp=publish-editor]
-The deadline is 11:40. In the PDF you will have screenshot(s) of the visualizations you created alongside a description of what we can see on the map. 
+The deadline is 11:40am. In the PDF you will have screenshot(s) of the visualizations you created alongside a description of what we can see on the map. 
 
 **MVT tiles** - Use StarLet package to generate MVT tiles for the datasets to be visualized.
 
