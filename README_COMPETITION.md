@@ -14,8 +14,10 @@ Note: watershed is an area of land that catches rain and snow, draining all surf
 ## 📊 Datsets
 
 You are given two datasets:
-- [**Riverside county Watershed regions**](https://drive.google.com/file/d/1TWvMOM_qTbr_T-xDGsMQuKx9chcCK6gq/view?usp=sharing)
+- [**Riverside County Watershed regions**](https://drive.google.com/file/d/1TWvMOM_qTbr_T-xDGsMQuKx9chcCK6gq/view?usp=sharing)
 - [**Rierside County Crop Data (with acreage and crop types)**](https://drive.google.com/file/d/10VwiL-vjJ7Uv_QaGhrILHiU8cbybkrG1/view?usp=sharing)
+
+![Datasets Visualization](images/crop_riverside_figure.png)
 
 You are expected to combine the datasets to yield meaningful visualization for three challenges.
 
